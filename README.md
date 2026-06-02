@@ -1,4 +1,4 @@
-# LoRA-Edit: Controllable First-Frame-Guided Video Editing via Mask-Aware LoRA Fine-Tuning
+# LoRA-Edit: Controllable First-Frame-Guided Video Editing via Mask-Aware LoRA Fine-Tuning [ICLR 2026]
 
 [[Paper]](https://arxiv.org/pdf/2506.10082) | [[Project Page]](https://cjeen.github.io/LoraEditPaper/) | [[Demo]](https://www.youtube.com/watch?v=xOUnpG7hqL8)
 
@@ -6,28 +6,6 @@
   <img src="assets/figs_teaser.png" alt="LoRA-Edit Teaser" width="800"/>
 </div>
 We achieves high-quality first-frame guided video editing given a reference image (top row), while maintaining flexibility for incorporating additional reference conditions (bottom row).
-
-## 📰 News
-
-- **[2025.06.15]** Additional edited frames as guidance is now available! 🎉
-- **[2025.06.07]** LoRA-Edit first-frame-guided-editing code is now available! 🎉
-
-## Important Notes
-
-1. Unlike video editing techniques such as VACE, our method itself does not provide visual editing capabilities. Instead, we leverage powerful image editing models to edit the first frame (or more frames), thereby transferring image editing capabilities to video editing.
-
-2. Our project currently runs at a moderate speed, taking 30-50 minutes to edit 49 frames on RTX 4090. We are actively working on optimizations (A faster version will be available this month).
-
-3. The ComfyUI version is currently facing challenges as we haven't found a suitable node for training Wan I2V LoRA in ComfyUI.
-
-4. We welcome your issues and contributions to our project!
-
-## TODO List
-
-- [x] Upload first-frame-guided video editing code (Completed)
-- [x] Upload additional reference code (~~Expected before UTC 2025.06.15~~, Completed)
-- [x] Upload detailed memory and speed report on RTX 4090 (~~Expected before UTC 2025.06.15~~, Completed)
-- [ ] Optimize memory usage and speed
 
 ## 🛠️ Environment Setup
 

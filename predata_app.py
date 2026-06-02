@@ -92,6 +92,15 @@ def generate_caption(image_path, concept_prefix=""):
     return caption_text
 
 
+def normalize_training_precision(precision):
+    precision = (precision or "").lower()
+    if precision == "fp16":
+        precision = "bf16"
+    if precision not in ("bf16", "fp8"):
+        raise ValueError(f"Unsupported training precision: {precision}. Choose 'bf16' or 'fp8'.")
+    return precision
+
+
 class PromptGUI(object):
     def __init__(self, checkpoint_dir, model_cfg):
         self.checkpoint_dir = checkpoint_dir
@@ -687,15 +696,16 @@ class PromptGUI(object):
 
     def save_masks_to_dir(self, output_dir: str, concept_prefix: str = "", ckpt_path: str = "",
                          learning_rate: float = 1e-3, save_every_n_epochs: int = 50, 
-                         epochs: int = 100, precision: str = "fp8") -> str:
+                         epochs: int = 100, precision: str = "bf16") -> str:
         assert self.bbox_masks_all is not None and len(self.bbox_masks_all) > 0
         
         return self.save_processed_data(output_dir, concept_prefix, ckpt_path, 
                                       learning_rate, save_every_n_epochs, epochs, precision)
     
     def create_configs(self, output_dir: str, ckpt_path: str, learning_rate: float = 1e-3, 
-                      save_every_n_epochs: int = 50, epochs: int = 100, precision: str = "fp8"):
+                      save_every_n_epochs: int = 50, epochs: int = 100, precision: str = "bf16"):
         """Create training configuration files"""
+        precision = normalize_training_precision(precision)
         configs_dir = os.path.join(output_dir, 'configs')
         os.makedirs(configs_dir, exist_ok=True)
         
@@ -712,7 +722,7 @@ num_repeats = 1
             f.write(dataset_config)
         
         # Configure different parameters based on precision
-        if precision == "fp16":
+        if precision == "bf16":
             transformer_dtype = 'bfloat16'
             optimizer_type = 'AdamW'
             stabilize_line = ""  # Don't add stabilize parameter
@@ -776,8 +786,9 @@ weight_decay = 0.01
 
     def save_processed_data(self, output_dir: str, concept_prefix: str = "", ckpt_path: str = "", 
                            learning_rate: float = 1e-3, save_every_n_epochs: int = 50, 
-                           epochs: int = 100, precision: str = "fp8") -> str:
+                           epochs: int = 100, precision: str = "bf16") -> str:
         """Complete data processing and saving"""
+        precision = normalize_training_precision(precision)
         os.makedirs(output_dir, exist_ok=True)
         
         try:
@@ -1029,10 +1040,10 @@ def make_demo(
                                 # Training configuration options
                 with gr.Row():
                     precision_field = gr.Dropdown(
-                        choices=["fp8", "fp16"], 
-                        value="fp16", 
+                        choices=["bf16", "fp8"], 
+                        value="bf16", 
                         label="Training Precision",
-                        info="fp8: Saves more VRAM but requires newer GPU; fp16: Better compatibility"
+                        info="bf16: Better compatibility; fp8: Saves more VRAM but requires newer GPU"
                     )
                     epochs_field = gr.Number(
                         100, label="Training Epochs",
@@ -1044,7 +1055,7 @@ def make_demo(
                     learning_rate_field = gr.Number(
                         0.0001, label="Learning Rate", 
                         minimum=1e-6, maximum=1e-1, step=1e-5,
-                        info="fp8 recommended 1e-3, fp16 recommended 1e-4"
+                        info="bf16 recommended 1e-4, fp8 recommended 1e-3"
                     )
                     save_every_n_epochs_field = gr.Number(
                         50, label="Save Interval (Epochs)", 
@@ -1328,7 +1339,8 @@ def make_demo(
 
         def update_learning_rate_on_precision_change(precision):
             """Automatically adjust learning rate based on precision selection"""
-            if precision == "fp16":
+            precision = normalize_training_precision(precision)
+            if precision == "bf16":
                 return 0.0001  # 1e-4
             else:  # fp8
                 return 0.001   # 1e-3
